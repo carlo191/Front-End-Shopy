@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import "bootstrap/dist/css/bootstrap.min.css";
 
 function App() {
   const [products, setProducts] = useState([]);
@@ -66,25 +67,22 @@ function App() {
     );
   };
 
-  // Calcola il totale dell'ordine con eventuale sconto
   const calcolaTotaleOrdine = () => {
     let subtotale = 0;
 
     for (const [id, qty] of Object.entries(carrello)) {
       const prodotto = products.find((p) => p.id === parseInt(id));
       if (prodotto) {
-        subtotale += Number(prodotto.prezzo) * qty; // <-- Number() qui
+        subtotale += Number(prodotto.prezzo) * qty;
       }
     }
 
-    // Applica sconto del 10% se il totale supera €100
     const sconto = subtotale > 100 ? subtotale * 0.1 : 0;
     const totale = subtotale - sconto;
 
     return { subtotale, sconto, totale };
   };
 
-  // Funzione per salvare l'ordine
   const salvaOrdine = async () => {
     if (Object.keys(carrello).length === 0) {
       alert("Il carrello è vuoto!");
@@ -95,7 +93,6 @@ function App() {
     setOrderResult(null);
 
     try {
-      // Prepara i dati per l'invio
       const orderData = {
         items: Object.entries(carrello).map(([id, quantity]) => ({
           productId: parseInt(id),
@@ -103,8 +100,7 @@ function App() {
         })),
       };
 
-      // Invia i dati al backend
-      const response = await fetch("http://localhost:3001/save-order", {
+      const response = await fetch("http://localhost:3001/api/save-order", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -121,7 +117,6 @@ function App() {
           orderId: result.orderId,
         });
 
-        // Svuota il carrello dopo il salvataggio
         setCarrello({});
       } else {
         setOrderResult({
@@ -140,124 +135,132 @@ function App() {
   };
 
   return (
-    <div className="container mt-4">
-      <h1>Lista Prodotti</h1>
-      <ul className="list-group">
-        {products.map((p) => (
-          <li
-            key={p.id}
-            className="list-group-item d-flex justify-content-between align-items-center"
-          >
-            <div>
-              <strong>{p.nome}</strong> – €{Number(p.prezzo).toFixed(2)} –
-              Disponibili: {p.quantita_disponibile}
-            </div>
-            <button
-              className="btn btn-primary btn-sm"
-              onClick={() => aggiungiAlCarrello(p.id, 1)}
-              disabled={p.quantita_disponibile === 0}
+    <>
+      {/* Navbar vuota blu */}
+      <nav className="navbar navbar-expand-lg navbar-dark bg-primary mb-4">
+        <div className="container"></div>
+      </nav>
+
+      <div className="container">
+        <h1 className="mb-4">Lista Prodotti</h1>
+        <ul className="list-group mb-5 shadow-sm">
+          {products.map((p, idx) => (
+            <li
+              key={p.id}
+              className="list-group-item d-flex justify-content-between align-items-center"
+              style={{
+                borderBottom:
+                  idx !== products.length - 1 ? "1px solid #dee2e6" : "none",
+              }}
             >
-              Aggiungi 1
-            </button>
-          </li>
-        ))}
-      </ul>
+              <div>
+                <strong>{p.nome}</strong> – €{Number(p.prezzo).toFixed(2)} –
+                Disponibili: {p.quantita_disponibile}
+              </div>
+              <button
+                className="btn btn-outline-primary btn-sm"
+                onClick={() => aggiungiAlCarrello(p.id, 1)}
+                disabled={p.quantita_disponibile === 0}
+              >
+                Aggiungi 1
+              </button>
+            </li>
+          ))}
+        </ul>
 
-      <h2 className="mt-5">Carrello</h2>
-      {Object.keys(carrello).length === 0 ? (
-        <p>Il carrello è vuoto</p>
-      ) : (
-        <div>
-          <ul className="list-group mb-3">
-            {Object.entries(carrello).map(([id, qty]) => {
-              const prodotto = products.find((p) => p.id === parseInt(id));
-              const subtotale = prodotto ? Number(prodotto.prezzo) * qty : 0;
-
-              return (
-                <li
-                  key={id}
-                  className="list-group-item d-flex justify-content-between align-items-center"
-                >
-                  <div>
-                    {prodotto ? prodotto.nome : "Prodotto sconosciuto"} × {qty}{" "}
-                    – €{subtotale.toFixed(2)}
-                  </div>
-                  <div>
-                    <button
-                      className="btn btn-danger btn-sm mr-2"
-                      onClick={() => rimuoviDalCarrello(parseInt(id), 1)}
-                    >
-                      Rimuovi 1
-                    </button>
-                  </div>
-                </li>
-              );
-            })}
-          </ul>
-
-          {/* Riepilogo dell'ordine */}
-          <div className="card">
-            <div className="card-header">
-              <h5>Riepilogo Ordine</h5>
-            </div>
-            <div className="card-body">
+        <h2 className="mb-3">Carrello</h2>
+        {Object.keys(carrello).length === 0 ? (
+          <p className="text-muted">Il carrello è vuoto</p>
+        ) : (
+          <div>
+            <ul className="list-group mb-3 shadow-sm">
               {Object.entries(carrello).map(([id, qty]) => {
                 const prodotto = products.find((p) => p.id === parseInt(id));
                 const subtotale = prodotto ? Number(prodotto.prezzo) * qty : 0;
 
                 return (
-                  <div key={id} className="mb-2">
-                    {prodotto ? prodotto.nome : "Prodotto sconosciuto"} × {qty}{" "}
-                    – €{subtotale.toFixed(2)}
-                  </div>
+                  <li
+                    key={id}
+                    className="list-group-item d-flex justify-content-between align-items-center"
+                  >
+                    <div>
+                      {prodotto ? prodotto.nome : "Prodotto sconosciuto"} ×{" "}
+                      {qty} – €{subtotale.toFixed(2)}
+                    </div>
+                    <button
+                      className="btn btn-outline-danger btn-sm"
+                      onClick={() => rimuoviDalCarrello(parseInt(id), 1)}
+                    >
+                      Rimuovi 1
+                    </button>
+                  </li>
                 );
               })}
+            </ul>
 
-              <hr />
-
-              <div className="font-weight-bold">
-                <div>
-                  Subtotale: €
-                  {Number(calcolaTotaleOrdine().subtotale).toFixed(2)}
-                </div>
-                {calcolaTotaleOrdine().sconto > 0 && (
-                  <div className="text-success">
-                    Sconto (10%): -€
-                    {Number(calcolaTotaleOrdine().sconto).toFixed(2)}
-                  </div>
-                )}
-                <div className="mt-2 h5">
-                  Totale ordine: €
-                  {Number(calcolaTotaleOrdine().totale).toFixed(2)}
-                </div>
+            <div className="card shadow-sm">
+              <div className="card-header bg-light">
+                <h5 className="mb-0">Riepilogo Ordine</h5>
               </div>
+              <div className="card-body">
+                {Object.entries(carrello).map(([id, qty]) => {
+                  const prodotto = products.find((p) => p.id === parseInt(id));
+                  const subtotale = prodotto
+                    ? Number(prodotto.prezzo) * qty
+                    : 0;
 
-              {/* Pulsante per salvare l'ordine */}
-              <div className="mt-3">
-                <button
-                  className="btn btn-success"
-                  onClick={salvaOrdine}
-                  disabled={isSaving}
-                >
-                  {isSaving ? "Salvataggio in corso..." : "Completa Ordine"}
-                </button>
+                  return (
+                    <div key={id} className="mb-2">
+                      {prodotto ? prodotto.nome : "Prodotto sconosciuto"} ×{" "}
+                      {qty} – €{subtotale.toFixed(2)}
+                    </div>
+                  );
+                })}
 
-                {/* Messaggio di risultato */}
-                {orderResult && (
-                  <div
-                    className={`mt-3 alert ${
-                      orderResult.success ? "alert-success" : "alert-danger"
-                    }`}
-                  >
-                    {orderResult.message}
+                <hr />
+
+                <div className="fw-bold">
+                  <div>
+                    Subtotale: €
+                    {Number(calcolaTotaleOrdine().subtotale).toFixed(2)}
                   </div>
-                )}
+                  {calcolaTotaleOrdine().sconto > 0 && (
+                    <div className="text-success">
+                      Sconto (10%): -€
+                      {Number(calcolaTotaleOrdine().sconto).toFixed(2)}
+                    </div>
+                  )}
+                  <div className="mt-2 h5">
+                    Totale ordine: €
+                    {Number(calcolaTotaleOrdine().totale).toFixed(2)}
+                  </div>
+                </div>
+
+                <div className="mt-3">
+                  <button
+                    className="btn btn-success btn-lg w-100"
+                    onClick={salvaOrdine}
+                    disabled={isSaving}
+                  >
+                    {isSaving ? "Salvataggio in corso..." : "Completa Ordine"}
+                  </button>
+
+                  {orderResult && (
+                    <div
+                      className={`mt-3 alert ${
+                        orderResult.success ? "alert-success" : "alert-danger"
+                      }`}
+                    >
+                      {orderResult.message}
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
           </div>
-        </div>
-      )}
-    </div>
+        )}
+      </div>
+    </>
   );
 }
 

@@ -100,7 +100,7 @@ function App() {
         })),
       };
 
-      const response = await fetch("http://localhost:3001/api/save-order", {
+      const response = await fetch("http://localhost:3001/save-order", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
